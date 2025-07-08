@@ -1,0 +1,15 @@
+{
+  "name": "lib",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsup"
+  },
+  "peerDependencies": {
+    "axios": "^1.10.0"
+  },
+  "devDependencies": {
+    "tsup": "8.5.0",
+    "typescript": "5.8.3"
+  }
+}

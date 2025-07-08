@@ -12,7 +12,7 @@ const libAliasesPlugin: Plugin = {
 				args.importer.includes('lib\\')
 
 			if (isLib) {
-        const resolvedPath = path.resolve('./lib/src/', args.path.replace('@/', ''))
+        const resolvedPath = path.resolve('./packages/lib/src/', args.path.replace('@/', ''))
         const fullPath = resolvedPath.concat('.ts')
 				const fileExists = fs.existsSync(fullPath)
 				if(fileExists) return { path: fullPath }

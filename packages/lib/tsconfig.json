@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"],
-      "@lib": ["./packages/lib/src/index.ts"]
+      "@/*": ["./*"]
     },
     "target": "ESNext",
     "moduleResolution": "node16",
@@ -18,10 +18,9 @@
     "sourceMap": true,
     "skipLibCheck": false,
     "isolatedModules": true,
+    "declaration": true,
+    "composite": true,
     "outDir": "./dist"
   },
-  "references": [
-    { "path": "./packages/lib" }
-  ],
   "exclude": ["node_modules", "dist"]
 }
