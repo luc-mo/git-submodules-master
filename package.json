@@ -7,6 +7,9 @@
     "start": "node dist/index.js",
     "build": "tsup"
   },
+  "dependencies": {
+    "axios": "1.10.0"
+  },
   "devDependencies": {
     "@types/node": "24.0.10",
     "tsup": "8.5.0",
