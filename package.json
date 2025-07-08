@@ -1,13 +1,11 @@
 {
   "name": "master",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js"
-  },
-  "dependencies": {
-    "lib": "./lib"
+    "start": "node dist/index.js",
+    "build": "tsup"
   },
   "devDependencies": {
     "tsup": "8.5.0",

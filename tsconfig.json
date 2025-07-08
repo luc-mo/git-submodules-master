@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"],
+      "@lib": ["./lib/src/index.ts"]
     },
     "target": "ESNext",
     "moduleResolution": "node16",
