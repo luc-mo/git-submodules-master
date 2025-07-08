@@ -8,6 +8,7 @@
     "build": "tsup"
   },
   "devDependencies": {
+    "@types/node": "24.0.10",
     "tsup": "8.5.0",
     "typescript": "5.8.3"
   }

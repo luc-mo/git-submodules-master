@@ -20,5 +20,8 @@
     "isolatedModules": true,
     "outDir": "./dist"
   },
+  "references": [
+    { "path": "./lib" }
+  ],
   "exclude": ["node_modules", "dist"]
 }
