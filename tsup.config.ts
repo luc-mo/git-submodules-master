@@ -7,9 +7,21 @@ const libAliasesPlugin: Plugin = {
   name: 'lib-aliases',
   setup(build) {
     build.onResolve({ filter: /^@\// }, (args) => {
+			const isSubLib = 
+				args.importer.includes('sub-lib/') ||
+				args.importer.includes('sub-lib\\')
+
 			const isLib =
 				args.importer.includes('lib/') ||
 				args.importer.includes('lib\\')
+
+			if(isSubLib) {
+				const resolvedPath = path.resolve('./packages/lib/packages/sub-lib/src/', args.path.replace('@/', ''))
+				const fullPath = resolvedPath.concat('.ts')
+				const fileExists = fs.existsSync(fullPath)
+				if(fileExists) return { path: fullPath }
+				return { path: resolvedPath }
+			}
 
 			if (isLib) {
         const resolvedPath = path.resolve('./packages/lib/src/', args.path.replace('@/', ''))

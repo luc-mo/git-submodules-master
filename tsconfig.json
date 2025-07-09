@@ -2,7 +2,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@lib": ["./packages/lib/src/index.ts"]
+      "@lib": ["./packages/lib/src/index.ts"],
+      "@sub-lib": ["./packages/lib/packages/sub-lib/src/index.ts"]
     },
     "target": "ESNext",
     "moduleResolution": "node16",
