@@ -2,12 +2,11 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@lib": ["./packages/lib/src/index.ts"],
-      "@sub-lib": ["./packages/lib/packages/sub-lib/src/index.ts"]
+      "@lib": ["./packages/lib/src/index.ts"]
     },
     "target": "ESNext",
-    "moduleResolution": "node16",
-    "module": "node16",
+    "moduleResolution": "node",
+    "module": "esnext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -19,6 +18,7 @@
     "sourceMap": true,
     "skipLibCheck": false,
     "isolatedModules": true,
+    "moduleDetection": "force",
     "outDir": "./dist"
   },
   "references": [
