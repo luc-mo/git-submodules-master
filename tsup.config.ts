@@ -6,7 +6,7 @@ export default defineConfig({
 	format: ['esm'],
 	tsconfig: './tsconfig.json',
 	clean: true,
-	treeshake: false,
+	treeshake: true,
 	minify: false,
 	esbuildPlugins: [
 		submoduleAliasesPlugin()
