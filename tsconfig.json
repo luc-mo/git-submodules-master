@@ -2,7 +2,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@lib": ["./packages/lib/src/index.ts"]
+      "@lib": ["./packages/lib/src/index.ts"],
+      "@sub-lib": ["./packages/sub-lib/src/index.ts"]
     },
     "target": "ESNext",
     "moduleResolution": "node",
@@ -22,7 +23,8 @@
     "outDir": "./dist"
   },
   "references": [
-    { "path": "./packages/lib" }
+    { "path": "./packages/lib" },
+    { "path": "./packages/sub-lib" }
   ],
   "exclude": ["node_modules", "dist"]
 }

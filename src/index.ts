@@ -1,6 +1,7 @@
-import { mainFile, mainSubFile } from '@lib'
+import { mainFile } from '@lib'
+import { main } from '@sub-lib'
 import { file } from '@/file'
 
 mainFile()
-mainSubFile()
+main()
 console.log(file)

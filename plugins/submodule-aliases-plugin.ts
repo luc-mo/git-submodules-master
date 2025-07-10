@@ -7,6 +7,12 @@ interface IPluginOptions {
   dir?: string
 }
 
+interface SubmoduleInfo {
+  name: string
+  path: string
+  srcPath: string
+}
+
 export const submoduleAliasesPlugin = ({
   name = 'submodule-aliases',
   dir = 'packages'
@@ -14,13 +20,14 @@ export const submoduleAliasesPlugin = ({
   return {
     name,
     setup: (build) => {
-      const srcDir = path.resolve('./src')
-      const discoverAllSubmodules = (): Map<string, string> => {
-        const submoduleRegistry = new Map<string, string>()
+      const rootDir = path.resolve('./')
+      const rootSrcDir = path.join(rootDir, 'src')
+      
+      const discoverAllSubmodules = (): SubmoduleInfo[] => {
+        const submodules: SubmoduleInfo[] = []
         
         const exploreDirectory = (baseDir: string): void => {
           const packagesPath = path.join(baseDir, dir)
-          
           if (!fs.existsSync(packagesPath)) return
           
           try {
@@ -33,7 +40,11 @@ export const submoduleAliasesPlugin = ({
                 const srcPath = path.join(submodulePath, 'src')
                 
                 if (fs.existsSync(srcPath)) {
-                  submoduleRegistry.set(entry.name, submodulePath)
+                  submodules.push({
+                    name: entry.name,
+                    path: submodulePath,
+                    srcPath: srcPath
+                  })
                   exploreDirectory(submodulePath)
                 }
               })
@@ -42,8 +53,8 @@ export const submoduleAliasesPlugin = ({
           }
         }
 
-        exploreDirectory(path.resolve('./'))
-        return submoduleRegistry
+        exploreDirectory(rootDir)
+        return submodules
       }
 
       const resolveFileWithExtensions = (basePath: string): string | null => {
@@ -67,50 +78,65 @@ export const submoduleAliasesPlugin = ({
         return null
       }
 
-      const getFileContext = (filePath: string, submoduleRegistry: Map<string, string>) => {
-        if (filePath.startsWith(srcDir)) {
-          return { type: 'master' as const }
-        }
-
-        let bestMatch = { length: 0, name: '', path: '' }
-
-        for (const [submoduleName, submodulePath] of submoduleRegistry) {
-          const submoduleSrcPath = path.join(submodulePath, 'src')
-          
-          if (filePath.startsWith(submoduleSrcPath) && submoduleSrcPath.length > bestMatch.length) {
-            bestMatch = { length: submoduleSrcPath.length, name: submoduleName, path: submodulePath }
-          }
-        }
-
-        return bestMatch.name
-          ? { type: 'submodule' as const, submodulePath: bestMatch.path, submoduleName: bestMatch.name }
-          : { type: 'master' as const }
-      }
-
-      const resolveInternalImport = (importPath: string, contextPath: string): string | null => {
-        const relativePath = importPath.replace('@/', '')
-        const srcPath = path.join(contextPath, 'src')
-        const fullPath = path.resolve(srcPath, relativePath)
+      const findOwnerContext = (filePath: string, submodules: SubmoduleInfo[]) => {
+        const normalizedPath = path.resolve(filePath)
         
-        return resolveFileWithExtensions(fullPath)
-      }
-
-      const resolveSubmoduleImport = (submoduleName: string, fromPath: string, submoduleRegistry: Map<string, string>): string | null => {
-        // Priority 1: Local packages directory
-        const localSubmodulePath = path.join(fromPath, dir, submoduleName)
-        if (fs.existsSync(localSubmodulePath)) {
-          const indexPath = path.join(localSubmodulePath, 'src', 'index.ts')
-          if (fs.existsSync(indexPath)) {
-            return indexPath
+        // Check if it's in the master src directory
+        if (normalizedPath.startsWith(rootSrcDir)) {
+          return { 
+            type: 'master' as const, 
+            rootPath: rootDir,
+            srcPath: rootSrcDir
           }
         }
 
-        // Priority 2: Global submodule registry
-        const globalSubmodulePath = submoduleRegistry.get(submoduleName)
-        if (globalSubmodulePath) {
-          const indexPath = path.join(globalSubmodulePath, 'src', 'index.ts')
-          if (fs.existsSync(indexPath)) {
-            return indexPath
+        // Find the most specific submodule that owns this file
+        // Sort by src path length descending to get the most specific match
+        const sortedSubmodules = submodules.sort((a, b) => b.srcPath.length - a.srcPath.length)
+        
+        for (const submodule of sortedSubmodules) {
+          
+          if (normalizedPath.startsWith(submodule.srcPath)) {
+            return { 
+              type: 'submodule' as const, 
+              name: submodule.name,
+              rootPath: submodule.path,
+              srcPath: submodule.srcPath
+            }
+          }
+        }
+
+        return null
+      }
+
+      const resolveInternalImport = (importPath: string, context: any): string | null => {
+        if (!context) return null
+        
+        const relativePath = importPath.replace('@/', '')
+        const fullPath = path.resolve(context.srcPath, relativePath)
+        
+        const resolved = resolveFileWithExtensions(fullPath)
+        return resolved
+      }
+
+      const resolveSubmoduleImport = (submoduleName: string, context: any): string | null => {
+        if (!context) return null
+        
+        // Look for the submodule in the packages directory of the current context
+        const localSubmodulePath = path.join(context.rootPath, dir, submoduleName)
+        
+        if (fs.existsSync(localSubmodulePath)) {
+          const srcPath = path.join(localSubmodulePath, 'src')
+          if (fs.existsSync(srcPath)) {
+            const indexPath = path.join(srcPath, 'index.ts')
+            if (fs.existsSync(indexPath)) {
+              return indexPath
+            }
+            // Try index.js if index.ts doesn't exist
+            const indexJsPath = path.join(srcPath, 'index.js')
+            if (fs.existsSync(indexJsPath)) {
+              return indexJsPath
+            }
           }
         }
 
@@ -118,29 +144,26 @@ export const submoduleAliasesPlugin = ({
       }
 
       build.onResolve({ filter: /^@/ }, (args) => {
-        const submoduleRegistry = discoverAllSubmodules()
-        const fileContext = getFileContext(args.importer, submoduleRegistry)
+        const submodules = discoverAllSubmodules()
+        const context = findOwnerContext(args.importer, submodules)
+
+        if (!context) {
+          return undefined
+        }
 
         // Handle internal imports (@/...)
         if (args.path.startsWith('@/')) {
-          const contextPath = fileContext.type === 'master' 
-            ? path.resolve('./') 
-            : fileContext.submodulePath!
-          
-          const resolvedPath = resolveInternalImport(args.path, contextPath)
+          const resolvedPath = resolveInternalImport(args.path, context)
           if (resolvedPath) {
             return { path: resolvedPath }
+          } else {
           }
         }
 
         // Handle submodule imports (@submodule)
         if (args.path.startsWith('@') && !args.path.startsWith('@/')) {
           const submoduleName = args.path.replace('@', '')
-          const fromPath = fileContext.type === 'master' 
-            ? path.resolve('./') 
-            : fileContext.submodulePath!
-          
-          const resolvedPath = resolveSubmoduleImport(submoduleName, fromPath, submoduleRegistry)
+          const resolvedPath = resolveSubmoduleImport(submoduleName, context)
           if (resolvedPath) {
             return { path: resolvedPath }
           }
