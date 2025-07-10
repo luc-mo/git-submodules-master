@@ -9,6 +9,6 @@ export default defineConfig({
 	treeshake: false,
 	minify: false,
 	esbuildPlugins: [
-		submoduleAliasesPlugin({ dir: 'packages', submodules: ['lib'] })
+		submoduleAliasesPlugin()
 	],
 })
