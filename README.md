@@ -92,5 +92,5 @@ The project uses `tsup` for building TypeScript files. The configuration include
 This project is licensed under the MIT License.
 
 ## Submodule Repositories
-- [lib repository](https://github.com/luc-mo/git-submodules-lib)
-- [sub-lib repository](https://github.com/luc-mo/git-submodules-sub-lib)
+- [Lib repository](https://github.com/luc-mo/git-submodules-lib)
+- [Sub-lib repository](https://github.com/luc-mo/git-submodules-sub-lib)
